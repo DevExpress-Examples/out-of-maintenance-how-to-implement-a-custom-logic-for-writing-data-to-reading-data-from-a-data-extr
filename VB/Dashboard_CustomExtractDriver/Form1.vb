@@ -1,43 +1,43 @@
 ﻿Imports DevExpress.DashboardCommon
-Imports DevExpress.DataAccess.ConnectionParameters
-Imports DevExpress.DataAccess.Sql
+Imports DevExpress.DataAccess.Excel
 Imports DevExpress.XtraEditors
+Imports System
 
 Namespace Dashboard_CustomExtractDriver
-    Partial Public Class Form1
-        Inherits XtraForm
+	Partial Public Class Form1
+		Inherits XtraForm
 
-        Public Sub New()
-            InitializeComponent()
-            ExtractDriverStorage.DefaultDriver = New ExtractEncryptionDriver()
+		Private Const extractFileNamePattern As String = """Extract_""yyyyMMddHHmmssfff"".dat"""
+		Public Sub New()
+			InitializeComponent()
+			ExtractDriverStorage.DefaultDriver = New ExtractEncryptionDriver()
 
-            Dim sqlDataSource As New DashboardSqlDataSource()
-            sqlDataSource.DataProcessingMode = DataProcessingMode.Client
-            Dim connectionParams As New Access2007ConnectionParameters("..\..\Data\Northwind.accdb", "")
-            sqlDataSource.ConnectionParameters = connectionParams
+			Dim extractDataSource As New DashboardExtractDataSource()
+			extractDataSource.ExtractSourceOptions.DataSource = CreateExcelDataSource()
+			extractDataSource.FileName = Date.Now.ToString(extractFileNamePattern)
+			extractDataSource.UpdateExtractFile()
 
-            Dim selectQuery As SelectQuery = SelectQueryFluentBuilder.AddTable("Invoices").
-                SelectColumns("ExtendedPrice", "Quantity", "OrderDate", "ProductName").Build("Query 1")
-            sqlDataSource.Queries.Add(selectQuery)
-            sqlDataSource.Fill()
+			dashboardViewer1.Dashboard = CreateDashboard(extractDataSource)
+		End Sub
 
-            Dim extractDataSource As New DashboardExtractDataSource()
-            extractDataSource.ExtractSourceOptions.DataSource = sqlDataSource
-            extractDataSource.ExtractSourceOptions.DataMember = "Query 1"
-            extractDataSource.FileName = ".\InvoicesExtract.dat"
-            extractDataSource.UpdateExtractFile()
+		Private Shared Function CreateDashboard(ByVal extractDataSource As DashboardExtractDataSource) As Dashboard
+			Dim dashboard As New Dashboard()
+			dashboard.DataSources.Add(extractDataSource)
+			Dim pivot As New PivotDashboardItem()
+			pivot.DataSource = extractDataSource
+			pivot.Values.AddRange(New Measure("Extended Price"), New Measure("Quantity"))
+			pivot.Columns.Add(New Dimension("OrderDate", DateTimeGroupInterval.Year))
+			pivot.Rows.Add(New Dimension("ProductName"))
+			dashboard.Items.Add(pivot)
+			Return dashboard
+		End Function
 
-            Dim dashboard As New Dashboard()
-            dashboard.DataSources.Add(extractDataSource)
-
-            Dim pivot As New PivotDashboardItem()
-            pivot.DataSource = extractDataSource
-            pivot.Values.AddRange(New Measure("ExtendedPrice"), New Measure("Quantity"))
-            pivot.Columns.Add(New Dimension("OrderDate", DateTimeGroupInterval.Year))
-            pivot.Rows.Add(New Dimension("ProductName"))
-            dashboard.Items.Add(pivot)
-
-            dashboardViewer1.Dashboard = dashboard
-        End Sub
-    End Class
+		Private Shared Function CreateExcelDataSource() As DashboardExcelDataSource
+			Dim excelDataSource As New DashboardExcelDataSource() With {
+				.FileName = "Data\SalesPerson.xlsx", .SourceOptions = New ExcelSourceOptions() With {.ImportSettings = New ExcelWorksheetSettings("Data")}
+			}
+			excelDataSource.Fill()
+			Return excelDataSource
+		End Function
+	End Class
 End Namespace
