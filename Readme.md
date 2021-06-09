@@ -15,6 +15,7 @@ A custom driver is an object that implements the <a href="https://documentation.
 * The <a href="https://documentation.devexpress.com/#Dashboard/DevExpressDashboardCommonICustomExtractDriver_CreateWriteSessiontopic">ICustomExtractDriver.CreateWriteSession</a> method creates a write session to encrypt extract pages.
 * The <a href="https://documentation.devexpress.com/#Dashboard/DevExpressDashboardCommonICustomExtractDriver_CreateReadSessiontopic">ICustomExtractDriver.CreateReadSession</a> method creates a read session that provides logic for reading encrypted pages.
 
-See also:
+## Documentation
 
-* [Extract Data Source](https://docs.devexpress.com/Dashboard/115900/)
+- [Extract Data Source](https://docs.devexpress.com/Dashboard/115900/)
+- [Security Considerations](https://docs.devexpress.com/Dashboard/113775)
